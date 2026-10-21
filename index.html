@@ -1,94 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Robridge Training</title>
+<title>Robridge Training</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<style>
+* {
+    box-sizing: border-box;
+}
 
-        body {
-            margin: 0;
-            background: #f5f5f5;
-            color: #111;
-            font-family: Arial, Helvetica, sans-serif;
-        }
+body {
+    margin: 0;
+    background: #f4f4f4;
+    color: #111;
+    font-family: Arial, Helvetica, sans-serif;
+}
 
-        header {
-            background: #111;
-            color: white;
-            padding: 20px;
-        }
+header {
+    background: #111;
+    color: white;
+    padding: 22px;
+}
 
-        header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
+header h1 {
+    margin: 0;
+    font-size: 24px;
+}
 
-        header p {
-            margin: 5px 0 0;
-            opacity: 0.7;
-        }
+header p {
+    margin: 5px 0 0;
+    color: #aaa;
+}
 
-        main {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 30px 20px;
-        }
+main {
+    max-width: 850px;
+    margin: auto;
+    padding: 30px 18px 60px;
+}
 
-        .welcome {
-            margin-bottom: 30px;
-        }
+.welcome {
+    margin-bottom: 25px;
+}
 
-        .welcome h2 {
-            font-size: 36px;
-            margin: 0 0 8px;
-        }
+.welcome h2 {
+    font-size: 36px;
+    margin: 0 0 8px;
+}
 
-        .welcome p {
-            color: #666;
-        }
+.welcome p {
+    color: #666;
+}
 
-        .week {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid #ddd;
-        }
+.week {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
 
-        .day {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+.day {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.15s;
+}
 
-        .day:last-child {
-            border-bottom: none;
-        }
+.day:hover {
+    background: #fafafa;
+}
 
-        .day-name {
-            font-weight: bold;
-        }
+.day:last-child {
+    border-bottom: none;
+}
 
-        .session {
-            color: #888;
-            font-size: 14px;
-            margin-top: 5px;
-        }
+.day-info {
+    flex: 1;
+}
 
-        .checkbox {
-            width: 24px;
-            height: 24px;
-            border: 2px solid #aaa;
-            border-radius: 6px;
-        }
-    </style>
+.day-name {
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.session {
+    margin-top: 6px;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.details {
+    margin-top: 4px;
+    color: #777;
+    font-size: 13px;
+}
+
+.empty {
+    color: #aaa;
+    font-weight: normal;
+}
+
+.modal-background {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-background.active {
+    display: flex;
+}
+
+.modal {
+    background: white;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 18px;
+    padding: 25px;
+}
+
+.modal h2 {
+    margin-top: 0;
+}
+
+label {
+    display: block;
+    margin-top: 18px;
+    margin-bottom: 7px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 9px;
+    padding: 13px 18px;
+    font-weight: bold;
+}
+
+.cancel {
+    background: #eee;
+}
+
+.save {
+    background: #111;
+    color: white;
+    flex: 1;
+}
+</style>
 </head>
 
 <body>
@@ -105,67 +195,227 @@
         <p>Plan your training. Build your streak.</p>
     </div>
 
-    <div class="week">
+    <div class="week" id="week"></div>
 
-        <div class="day">
-            <div>
-                <div class="day-name">Monday</div>
-                <div class="session">No session planned</div>
-            </div>
-            <div class="checkbox"></div>
-        </div>
+</main>
 
-        <div class="day">
-            <div>
-                <div class="day-name">Tuesday</div>
-                <div class="session">No session planned</div>
-            </div>
-            <div class="checkbox"></div>
-        </div>
 
-        <div class="day">
-            <div>
-                <div class="day-name">Wednesday</div>
-                <div class="session">No session planned</div>
-            </div>
-            <div class="checkbox"></div>
-        </div>
+<div class="modal-background" id="modal">
 
-        <div class="day">
-            <div>
-                <div class="day-name">Thursday</div>
-                <div class="session">No session planned</div>
-            </div>
-            <div class="checkbox"></div>
-        </div>
+    <div class="modal">
 
-        <div class="day">
-            <div>
-                <div class="day-name">Friday</div>
-                <div class="session">No session planned</div>
-            </div>
-            <div class="checkbox"></div>
-        </div>
+        <h2 id="modalTitle">Edit Monday</h2>
 
-        <div class="day">
-            <div>
-                <div class="day-name">Saturday</div>
-                <div class="session">No session planned</div>
-            </div>
-            <div class="checkbox"></div>
-        </div>
+        <label>Session title</label>
 
-        <div class="day">
-            <div>
-                <div class="day-name">Sunday</div>
-                <div class="session">No session planned</div>
-            </div>
-            <div class="checkbox"></div>
+        <input
+            id="title"
+            type="text"
+            placeholder="e.g. 29er Strength"
+        >
+
+        <label>Training type</label>
+
+        <select id="category">
+            <option>Strength</option>
+            <option>On-water</option>
+            <option>Cardio</option>
+            <option>Mobility</option>
+            <option>Technical</option>
+            <option>Recovery</option>
+            <option>Other</option>
+        </select>
+
+        <label>Details</label>
+
+        <textarea
+            id="details"
+            placeholder="What are you going to do?"
+        ></textarea>
+
+        <div class="buttons">
+
+            <button class="cancel" onclick="closeModal()">
+                Cancel
+            </button>
+
+            <button class="save" onclick="saveSession()">
+                Save session
+            </button>
+
         </div>
 
     </div>
 
-</main>
+</div>
+
+
+<script>
+
+const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"
+];
+
+let training = JSON.parse(
+    localStorage.getItem("robridgeTraining")
+) || {};
+
+let selectedDay = null;
+
+
+function renderWeek() {
+
+    const week = document.getElementById("week");
+
+    week.innerHTML = "";
+
+    days.forEach((day, index) => {
+
+        const session = training[index];
+
+        const row = document.createElement("div");
+
+        row.className = "day";
+
+        row.onclick = () => openEditor(index);
+
+        row.innerHTML = `
+
+            <div class="day-info">
+
+                <div class="day-name">
+                    ${day}
+                </div>
+
+                ${
+                    session
+                    ?
+                    `
+                    <div class="session">
+                        ${escapeHTML(session.title)}
+                    </div>
+
+                    <div class="details">
+                        ${escapeHTML(session.details || session.category)}
+                    </div>
+                    `
+                    :
+                    `
+                    <div class="session empty">
+                        No session planned
+                    </div>
+                    `
+                }
+
+            </div>
+
+        `;
+
+        week.appendChild(row);
+
+    });
+
+}
+
+
+function openEditor(index) {
+
+    selectedDay = index;
+
+    const session = training[index];
+
+    document.getElementById("modalTitle").textContent =
+        "Edit " + days[index];
+
+    document.getElementById("title").value =
+        session ? session.title : "";
+
+    document.getElementById("category").value =
+        session ? session.category : "Strength";
+
+    document.getElementById("details").value =
+        session ? session.details : "";
+
+    document
+        .getElementById("modal")
+        .classList.add("active");
+
+}
+
+
+function closeModal() {
+
+    document
+        .getElementById("modal")
+        .classList.remove("active");
+
+    selectedDay = null;
+
+}
+
+
+function saveSession() {
+
+    const title =
+        document.getElementById("title").value.trim();
+
+    const category =
+        document.getElementById("category").value;
+
+    const details =
+        document.getElementById("details").value.trim();
+
+    if (!title) {
+
+        alert("Please give the session a title.");
+
+        return;
+
+    }
+
+    training[selectedDay] = {
+
+        title: title,
+
+        category: category,
+
+        details: details
+
+    };
+
+    localStorage.setItem(
+        "robridgeTraining",
+        JSON.stringify(training)
+    );
+
+    closeModal();
+
+    renderWeek();
+
+}
+
+
+function escapeHTML(text) {
+
+    const element =
+        document.createElement("div");
+
+    element.textContent = text;
+
+    return element.innerHTML;
+
+}
+
+
+renderWeek();
+
+</script>
 
 </body>
 </html>
