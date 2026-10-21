@@ -87,19 +87,18 @@
     }
 
     /*
-      Previous and future days:
-      clean light grey, no padlocks.
+      Previous and future days are grey,
+      but the whole day is still editable.
     */
 
     .day.locked {
       background: #e2e2e2;
       color: #999;
-      cursor: default;
       box-shadow: none;
     }
 
     .day.locked:hover {
-      transform: none;
+      transform: translateY(-1px);
     }
 
     .day-info {
@@ -163,7 +162,7 @@
       color: white;
     }
 
-    /* LOCKED */
+    /* LOCKED TICK BOX */
 
     .locked .tick-box {
       background: #cfcfcf;
@@ -294,37 +293,14 @@
 
       <select id="trainingType">
 
-        <option value="Strength">
-          Strength
-        </option>
-
-        <option value="Cardio">
-          Cardio
-        </option>
-
-        <option value="Mobility">
-          Mobility
-        </option>
-
-        <option value="On Water">
-          On Water
-        </option>
-
-        <option value="Foiling">
-          Foiling
-        </option>
-
-        <option value="Sailing">
-          Sailing
-        </option>
-
-        <option value="Recovery">
-          Recovery
-        </option>
-
-        <option value="Other">
-          Other
-        </option>
+        <option value="Strength">Strength</option>
+        <option value="Cardio">Cardio</option>
+        <option value="Mobility">Mobility</option>
+        <option value="On Water">On Water</option>
+        <option value="Foiling">Foiling</option>
+        <option value="Sailing">Sailing</option>
+        <option value="Recovery">Recovery</option>
+        <option value="Other">Other</option>
 
       </select>
 
@@ -373,9 +349,7 @@
     ];
 
 
-    /*
-      Weekly training plan.
-    */
+    /* LOAD TRAINING PLAN */
 
     let training =
       JSON.parse(
@@ -383,19 +357,7 @@
       ) || {};
 
 
-    /*
-      Completed training is stored by
-      actual calendar date.
-
-      Example:
-
-      {
-        "2026-10-20": true,
-        "2026-10-21": true
-      }
-
-      This means completed days stay completed.
-    */
+    /* LOAD COMPLETION HISTORY */
 
     let completed =
       JSON.parse(
@@ -406,15 +368,7 @@
     let selectedDay = null;
 
 
-    /*
-      Get today's weekday.
-
-      JavaScript:
-      Sunday = 0
-      Monday = 1
-      Tuesday = 2
-      etc.
-    */
+    /* GET TODAY'S WEEKDAY */
 
     function getTodayIndex() {
 
@@ -425,12 +379,7 @@
     }
 
 
-    /*
-      Get today's actual date.
-
-      Example:
-      2026-10-21
-    */
+    /* GET TODAY'S DATE */
 
     function getTodayKey() {
 
@@ -452,10 +401,7 @@
     }
 
 
-    /*
-      Get the actual date represented
-      by each weekday in the current week.
-    */
+    /* GET DATE FOR A DAY IN THIS WEEK */
 
     function getDateKeyForDay(dayIndex) {
 
@@ -490,9 +436,7 @@
     }
 
 
-    /*
-      Draw the weekly planner.
-    */
+    /* DRAW PLANNER */
 
     function renderWeek() {
 
@@ -532,18 +476,14 @@
 
 
         /*
-          Anything other than today
-          is locked.
+          Only the visual appearance is locked.
+          The day itself remains editable.
         */
 
         if (!isToday) {
           div.classList.add("locked");
         }
 
-
-        /*
-          Completed days stay ticked.
-        */
 
         if (isCompleted) {
           div.classList.add("completed");
@@ -569,7 +509,6 @@
               }
 
             </div>
-
 
             <div class="session-title">
 
@@ -602,11 +541,8 @@
 
 
         /*
-          Clicking the day opens
-          the training editor.
-
-          Clicking the tick box does
-          NOT open the editor.
+          Clicking ANYWHERE on the day
+          except the tick box opens the editor.
         */
 
         div.addEventListener(
@@ -634,9 +570,7 @@
     }
 
 
-    /*
-      Tick today's training.
-    */
+    /* TICK TODAY */
 
     function toggleDay(index, event) {
 
@@ -648,8 +582,8 @@
 
 
       /*
-        Previous and future days
-        cannot be completed.
+        Previous and future boxes
+        simply do nothing.
       */
 
       if (index !== todayIndex) {
@@ -662,10 +596,6 @@
 
 
       if (completed[todayKey]) {
-
-        /*
-          Allow today's tick to be undone.
-        */
 
         delete completed[todayKey];
 
@@ -687,9 +617,7 @@
     }
 
 
-    /*
-      Open training editor.
-    */
+    /* OPEN EDITOR */
 
     function openEditor(index) {
 
@@ -735,9 +663,7 @@
     }
 
 
-    /*
-      Close editor.
-    */
+    /* CLOSE EDITOR */
 
     function closeModal() {
 
@@ -751,9 +677,7 @@
     }
 
 
-    /*
-      Save training session.
-    */
+    /* SAVE SESSION */
 
     function saveSession() {
 
@@ -800,10 +724,7 @@
     }
 
 
-    /*
-      Prevent HTML being inserted
-      through session titles.
-    */
+    /* PREVENT HTML IN SESSION TITLES */
 
     function escapeHTML(text) {
 
@@ -817,10 +738,7 @@
     }
 
 
-    /*
-      Close modal if the user clicks
-      outside the modal box.
-    */
+    /* CLOSE MODAL BY CLICKING OUTSIDE */
 
     document.getElementById(
       "modal"
@@ -836,9 +754,7 @@
     );
 
 
-    /*
-      Start the planner.
-    */
+    /* START */
 
     renderWeek();
 
