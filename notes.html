@@ -3,402 +3,533 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Robridge Training - Notes</title>
+  <title>Notes - Robridge Training</title>
 
   <style>
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
     }
 
     body {
+      margin: 0;
+      font-family: Arial, sans-serif;
       background: #f5f5f5;
       color: #111;
-      padding: 30px 20px;
-    }
-
-    .container {
-      max-width: 700px;
-      margin: auto;
     }
 
     header {
-      text-align: center;
-      margin-bottom: 25px;
+      background: #111;
+      color: white;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     header h1 {
-      font-size: 32px;
-      margin-bottom: 6px;
+      margin: 0;
+      font-size: 22px;
     }
 
-    header p {
-      color: #666;
-    }
-
-    /* NAVIGATION */
-
-    .nav {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 25px;
-    }
-
-    .nav a {
+    nav a {
+      color: white;
       text-decoration: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      background: #ddd;
-      color: #111;
-      font-weight: bold;
+      margin-left: 18px;
       font-size: 14px;
     }
 
-    .nav a.active {
-      background: #111;
-      color: white;
+    main {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 20px;
     }
 
-    /* NOTES */
+    h2 {
+      margin-top: 0;
+    }
 
-    .note-box {
+    .intro {
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    /* WIND SETUPS */
+
+    .wind-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 35px;
+    }
+
+    .wind-card {
       background: white;
-      padding: 20px;
+      border: 1px solid #ddd;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      margin-bottom: 20px;
+      padding: 20px 15px;
+      cursor: pointer;
+      transition: 0.15s;
+      text-align: center;
+    }
+
+    .wind-card:hover {
+      transform: translateY(-2px);
+      border-color: #111;
+    }
+
+    .wind-card strong {
+      display: block;
+      font-size: 19px;
+      margin-bottom: 7px;
+    }
+
+    .wind-card span {
+      font-size: 13px;
+      color: #777;
+    }
+
+    .saved {
+      border-color: #111;
+    }
+
+    /* FORM */
+
+    .panel {
+      background: white;
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 35px;
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .panel h3 {
+      margin-top: 0;
     }
 
     label {
       display: block;
       font-weight: bold;
+      margin-top: 15px;
       margin-bottom: 6px;
+      font-size: 14px;
     }
 
     input,
     textarea {
       width: 100%;
-      padding: 12px;
+      padding: 11px;
       border: 1px solid #ccc;
       border-radius: 8px;
-      font-size: 15px;
-      margin-bottom: 15px;
+      font-family: inherit;
+      font-size: 14px;
     }
 
     textarea {
-      min-height: 180px;
+      min-height: 100px;
       resize: vertical;
     }
 
     button {
-      width: 100%;
-      border: none;
-      padding: 13px;
-      border-radius: 8px;
       background: #111;
       color: white;
-      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 18px;
+      margin-top: 18px;
       cursor: pointer;
+      font-size: 14px;
     }
 
     button:hover {
       opacity: 0.85;
     }
 
-    .saved-note {
+    .close-btn {
+      background: #ddd;
+      color: #111;
+      margin-left: 8px;
+    }
+
+    /* NORMAL NOTES */
+
+    .note-form {
+      background: white;
+      padding: 22px;
+      border-radius: 14px;
+      margin-bottom: 25px;
+    }
+
+    .note {
       background: white;
       padding: 18px;
       border-radius: 12px;
       margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
 
-    .saved-note h3 {
-      margin-bottom: 6px;
+    .note h3 {
+      margin-top: 0;
     }
 
-    .saved-note .date {
+    .note-date {
+      color: #777;
       font-size: 12px;
-      color: #888;
       margin-bottom: 10px;
     }
 
-    .saved-note p {
-      white-space: pre-wrap;
-      color: #444;
-      line-height: 1.5;
-    }
-
     .delete {
-      margin-top: 12px;
       background: #ddd;
       color: #111;
-      width: auto;
-      padding: 8px 12px;
+      font-size: 12px;
     }
 
-    .empty {
-      text-align: center;
-      color: #888;
-      padding: 20px;
-    }
+    @media (max-width: 600px) {
+      header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+      }
 
+      nav a {
+        margin-left: 0;
+        margin-right: 15px;
+      }
+    }
   </style>
 </head>
 
 <body>
 
-  <div class="container">
+<header>
+  <h1>Robridge Training</h1>
 
-    <header>
-      <h1>Robridge Training</h1>
-      <p>Training notes & conditions</p>
-    </header>
+  <nav>
+    <a href="index.html">Planner</a>
+    <a href="notes.html">Notes</a>
+  </nav>
+</header>
 
+<main>
 
-    <!-- NAVIGATION -->
+  <h2>Rigging & Conditions</h2>
 
-    <div class="nav">
+  <p class="intro">
+    Save your setup for different wind strengths so you can quickly see what works.
+  </p>
 
-      <a href="index.html">
-        Planner
-      </a>
+  <div class="wind-grid" id="windGrid"></div>
 
-      <a href="notes.html" class="active">
-        Notes
-      </a>
+  <div class="panel" id="riggingPanel">
 
-    </div>
+    <h3 id="selectedWind">Wind Setup</h3>
 
+    <label for="shroud">Shroud Tension</label>
+    <input type="text" id="shroud" placeholder="e.g. 25">
 
-    <!-- NEW NOTE -->
+    <label for="forestay">Forestay / Mast Setup</label>
+    <input type="text" id="forestay" placeholder="e.g. 3 holes from top">
 
-    <div class="note-box">
+    <label for="rake">Mast Rake</label>
+    <input type="text" id="rake" placeholder="Enter setup">
 
-      <label for="noteTitle">
-        Session
-      </label>
+    <label for="cunningham">Cunningham</label>
+    <input type="text" id="cunningham" placeholder="Enter setup">
 
-      <input
-        id="noteTitle"
-        type="text"
-        placeholder="e.g. 29er training"
-      >
+    <label for="outhaul">Outhaul</label>
+    <input type="text" id="outhaul" placeholder="Enter setup">
 
+    <label for="otherRigging">Other Setup Notes</label>
+    <textarea id="otherRigging" placeholder="Anything else about this wind range..."></textarea>
 
-      <label for="noteText">
-        Notes
-      </label>
-
-      <textarea
-        id="noteText"
-        placeholder="18 kts&#10;Tension: 25&#10;Sea state: choppy&#10;What went well...&#10;What to improve..."
-      ></textarea>
-
-
-      <button onclick="saveNote()">
-        Save note
-      </button>
-
-    </div>
-
-
-    <!-- SAVED NOTES -->
-
-    <div id="notesList"></div>
+    <button onclick="saveRigging()">Save Setup</button>
+    <button class="close-btn" onclick="closeRigging()">Close</button>
 
   </div>
 
 
-  <script>
+  <h2>Session Notes</h2>
 
-    /*
-      Load saved notes from the browser.
-    */
+  <div class="note-form">
 
-    let notes =
-      JSON.parse(
-        localStorage.getItem("robridgeNotes")
-      ) || [];
+    <label for="noteTitle">Session</label>
+    <input type="text" id="noteTitle" placeholder="e.g. 29er training - WPNSA">
 
+    <label for="noteText">Notes</label>
+    <textarea id="noteText" placeholder="What happened? What did you learn? What should you work on next time?"></textarea>
 
-    /*
-      Display all notes.
-    */
+    <button onclick="saveNote()">Save Note</button>
 
-    function renderNotes() {
+  </div>
 
-      const list =
-        document.getElementById("notesList");
+  <div id="notesList"></div>
 
-      list.innerHTML = "";
+</main>
 
 
-      if (notes.length === 0) {
+<script>
 
-        list.innerHTML = `
-          <div class="empty">
-            No training notes yet.
-          </div>
-        `;
+  /* -------------------------
+     WIND SETUPS
+  ------------------------- */
 
-        return;
+  const windRanges = [
+    "0–5 kts",
+    "5–10 kts",
+    "10–15 kts",
+    "15–20 kts",
+    "20–25 kts",
+    "25–30 kts",
+    "30–35 kts",
+    "35–40 kts",
+    "40–45 kts",
+    "45–50 kts",
+    "50+ kts"
+  ];
+
+  let selectedWind = null;
+
+  const windGrid = document.getElementById("windGrid");
+
+  function loadRigging() {
+    return JSON.parse(localStorage.getItem("robridgeRigging") || "{}");
+  }
+
+  function renderWindCards() {
+
+    const setups = loadRigging();
+
+    windGrid.innerHTML = "";
+
+    windRanges.forEach(range => {
+
+      const card = document.createElement("div");
+
+      card.className = "wind-card";
+
+      if (setups[range]) {
+        card.classList.add("saved");
       }
 
+      card.innerHTML = `
+        <strong>${range}</strong>
+        <span>${setups[range] ? "Setup saved" : "Add setup"}</span>
+      `;
 
-      notes.forEach((note, index) => {
+      card.onclick = () => openRigging(range);
 
-        const div =
-          document.createElement("div");
-
-        div.className = "saved-note";
-
-
-        div.innerHTML = `
-
-          <h3>
-            ${escapeHTML(note.title)}
-          </h3>
-
-          <div class="date">
-            ${escapeHTML(note.date)}
-          </div>
-
-          <p>
-            ${escapeHTML(note.text)}
-          </p>
-
-          <button
-            class="delete"
-            onclick="deleteNote(${index})"
-          >
-            Delete
-          </button>
-
-        `;
+      windGrid.appendChild(card);
+    });
+  }
 
 
-        list.appendChild(div);
+  function openRigging(range) {
 
-      });
+    selectedWind = range;
 
+    const setups = loadRigging();
+    const setup = setups[range] || {};
+
+    document.getElementById("selectedWind").textContent =
+      range + " Setup";
+
+    document.getElementById("shroud").value =
+      setup.shroud || "";
+
+    document.getElementById("forestay").value =
+      setup.forestay || "";
+
+    document.getElementById("rake").value =
+      setup.rake || "";
+
+    document.getElementById("cunningham").value =
+      setup.cunningham || "";
+
+    document.getElementById("outhaul").value =
+      setup.outhaul || "";
+
+    document.getElementById("otherRigging").value =
+      setup.otherRigging || "";
+
+    document.getElementById("riggingPanel").classList.add("active");
+
+    window.scrollTo({
+      top: document.getElementById("riggingPanel").offsetTop - 20,
+      behavior: "smooth"
+    });
+  }
+
+
+  function saveRigging() {
+
+    if (!selectedWind) return;
+
+    const setups = loadRigging();
+
+    setups[selectedWind] = {
+
+      shroud: document.getElementById("shroud").value,
+
+      forestay: document.getElementById("forestay").value,
+
+      rake: document.getElementById("rake").value,
+
+      cunningham: document.getElementById("cunningham").value,
+
+      outhaul: document.getElementById("outhaul").value,
+
+      otherRigging: document.getElementById("otherRigging").value
+
+    };
+
+    localStorage.setItem(
+      "robridgeRigging",
+      JSON.stringify(setups)
+    );
+
+    renderWindCards();
+
+    alert("Setup saved.");
+
+  }
+
+
+  function closeRigging() {
+
+    document
+      .getElementById("riggingPanel")
+      .classList.remove("active");
+
+    selectedWind = null;
+  }
+
+
+  /* -------------------------
+     NORMAL NOTES
+  ------------------------- */
+
+  function loadNotes() {
+
+    return JSON.parse(
+      localStorage.getItem("robridgeNotes") || "[]"
+    );
+
+  }
+
+
+  function saveNote() {
+
+    const title =
+      document.getElementById("noteTitle").value.trim();
+
+    const text =
+      document.getElementById("noteText").value.trim();
+
+    if (!title || !text) {
+      alert("Please enter a session and some notes.");
+      return;
     }
 
+    const notes = loadNotes();
 
-    /*
-      Save a new note.
-    */
+    notes.unshift({
 
-    function saveNote() {
+      title: title,
 
-      const title =
-        document.getElementById(
-          "noteTitle"
-        ).value.trim();
+      text: text,
 
+      date: new Date().toLocaleDateString("en-GB")
 
-      const text =
-        document.getElementById(
-          "noteText"
-        ).value.trim();
+    });
 
+    localStorage.setItem(
+      "robridgeNotes",
+      JSON.stringify(notes)
+    );
 
-      if (!title && !text) {
-        return;
-      }
-
-
-      const date =
-        new Date().toLocaleDateString(
-          "en-GB",
-          {
-            day: "numeric",
-            month: "long",
-            year: "numeric"
-          }
-        );
-
-
-      notes.unshift({
-
-        title: title || "Training note",
-
-        text: text,
-
-        date: date
-
-      });
-
-
-      localStorage.setItem(
-        "robridgeNotes",
-        JSON.stringify(notes)
-      );
-
-
-      document.getElementById(
-        "noteTitle"
-      ).value = "";
-
-
-      document.getElementById(
-        "noteText"
-      ).value = "";
-
-
-      renderNotes();
-
-    }
-
-
-    /*
-      Delete a note.
-    */
-
-    function deleteNote(index) {
-
-      notes.splice(index, 1);
-
-
-      localStorage.setItem(
-        "robridgeNotes",
-        JSON.stringify(notes)
-      );
-
-
-      renderNotes();
-
-    }
-
-
-    /*
-      Prevent HTML being inserted
-      into notes.
-    */
-
-    function escapeHTML(text) {
-
-      const div =
-        document.createElement("div");
-
-      div.textContent = text;
-
-      return div.innerHTML;
-
-    }
-
-
-    /*
-      Start page.
-    */
+    document.getElementById("noteTitle").value = "";
+    document.getElementById("noteText").value = "";
 
     renderNotes();
 
-  </script>
+  }
+
+
+  function deleteNote(index) {
+
+    const notes = loadNotes();
+
+    notes.splice(index, 1);
+
+    localStorage.setItem(
+      "robridgeNotes",
+      JSON.stringify(notes)
+    );
+
+    renderNotes();
+
+  }
+
+
+  function escapeHTML(text) {
+
+    const div = document.createElement("div");
+
+    div.textContent = text;
+
+    return div.innerHTML;
+
+  }
+
+
+  function renderNotes() {
+
+    const notes = loadNotes();
+
+    const container =
+      document.getElementById("notesList");
+
+    container.innerHTML = "";
+
+    notes.forEach((note, index) => {
+
+      const div = document.createElement("div");
+
+      div.className = "note";
+
+      div.innerHTML = `
+
+        <h3>${escapeHTML(note.title)}</h3>
+
+        <div class="note-date">
+          ${escapeHTML(note.date)}
+        </div>
+
+        <div>
+          ${escapeHTML(note.text).replace(/\n/g, "<br>")}
+        </div>
+
+        <button
+          class="delete"
+          onclick="deleteNote(${index})">
+          Delete
+        </button>
+
+      `;
+
+      container.appendChild(div);
+
+    });
+
+  }
+
+
+  renderWindCards();
+  renderNotes();
+
+</script>
 
 </body>
 </html>
