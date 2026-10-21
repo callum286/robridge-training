@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Robridge Training</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #111;
+    }
+
+    header {
+      background: #111;
+      color: white;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 18px;
+      font-size: 14px;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .welcome {
+      margin-bottom: 25px;
+    }
+
+    .welcome h2 {
+      margin-bottom: 5px;
+    }
+
+    .welcome p {
+      color: #777;
+      margin-top: 0;
+    }
+
+    /* STREAK */
+
+    .streak-card {
+      background: #111;
+      color: white;
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .streak-label {
+      font-size: 13px;
+      opacity: 0.65;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .streak-number {
+      font-size: 52px;
+      font-weight: bold;
+      margin: 5px 0;
+    }
+
+    .streak-text {
+      font-size: 14px;
+      opacity: 0.75;
+    }
+
+    /* STATS */
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #e5e5e5;
+    }
+
+    .stat-value {
+      font-size: 27px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      color: #777;
+      font-size: 13px;
+    }
+
+    /* PROGRESS */
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .section h3 {
+      margin-bottom: 12px;
+    }
+
+    .progress-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #e5e5e5;
+    }
+
+    .progress-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 9px;
+      background: #e8e8e8;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #111;
+      border-radius: 10px;
+      transition: width 0.4s ease;
+    }
+
+    /* RECENT */
+
+    .recent-card {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      border: 1px solid #e5e5e5;
+    }
+
+    .recent-item {
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .recent-item:last-child {
+      border-bottom: none;
+    }
+
+    .recent-date {
+      color: #888;
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+
+    .recent-title {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .empty {
+      color: #888;
+      font-size: 14px;
+    }
+
+    @media (max-width: 700px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      nav a {
+        margin-left: 0;
+        margin-right: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+
+  <h1>Robridge Training</h1>
+
+  <nav>
+    <a href="index.html">Planner</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="notes.html">Notes</a>
+  </nav>
+
+</header>
+
+
+<main>
+
+  <div class="welcome">
+    <h2>Your Training</h2>
+    <p>Track your consistency and see how you're progressing.</p>
+  </div>
+
+
+  <!-- STREAK -->
+
+  <div class="streak-card">
+
+    <div class="streak-label">
+      Current Streak
+    </div>
+
+    <div class="streak-number" id="streakNumber">
+      0
+    </div>
+
+    <div class="streak-text" id="streakText">
+      Complete today's training to start your streak.
+    </div>
+
+  </div>
+
+
+  <!-- STATS -->
+
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-value" id="totalSessions">0</div>
+      <div class="stat-label">Sessions completed</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value" id="longestStreak">0</div>
+      <div class="stat-label">Longest streak</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value" id="completionRate">0%</div>
+      <div class="stat-label">Completion rate</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value" id="plannedSessions">0</div>
+      <div class="stat-label">Sessions planned</div>
+    </div>
+
+  </div>
+
+
+  <!-- WEEKLY PROGRESS -->
+
+  <div class="section">
+
+    <h3>This Week</h3>
+
+    <div class="progress-card">
+
+      <div class="progress-row">
+        <span>Weekly completion</span>
+        <strong id="weeklyPercentage">0%</strong>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="weeklyProgress"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- RECENT TRAINING -->
+
+  <div class="section">
+
+    <h3>Recent Training</h3>
+
+    <div class="recent-card" id="recentTraining">
+
+      <div class="empty">
+        No completed training yet.
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+
+
+<script>
+
+  /* -------------------------
+     DATE HELPERS
+  ------------------------- */
+
+  function dateKey(date) {
+
+    const year = date.getFullYear();
+
+    const month = String(
+      date.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+      date.getDate()
+    ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+
+  }
+
+
+  function getToday() {
+
+    return new Date();
+
+  }
+
+
+  function getCompleted() {
+
+    return JSON.parse(
+      localStorage.getItem("robridgeCompleted") || "{}"
+    );
+
+  }
+
+
+  function getTraining() {
+
+    return JSON.parse(
+      localStorage.getItem("robridgeTraining") || "{}"
+    );
+
+  }
+
+
+  /* -------------------------
+     STREAK
+  ------------------------- */
+
+  function calculateCurrentStreak() {
+
+    const completed = getCompleted();
+
+    let date = new Date();
+
+    let todayKey = dateKey(date);
+
+    /*
+      If today hasn't been completed yet,
+      start checking from yesterday.
+    */
+
+    if (!completed[todayKey]) {
+
+      date.setDate(
+        date.getDate() - 1
+      );
+
+    }
+
+    let streak = 0;
+
+    while (true) {
+
+      const key = dateKey(date);
+
+      if (!completed[key]) {
+        break;
+      }
+
+      streak++;
+
+      date.setDate(
+        date.getDate() - 1
+      );
+
+    }
+
+    return streak;
+
+  }
+
+
+  /* -------------------------
+     LONGEST STREAK
+  ------------------------- */
+
+  function calculateLongestStreak() {
+
+    const completed = getCompleted();
+
+    const dates = Object.keys(completed)
+      .filter(key => completed[key])
+      .sort();
+
+    if (dates.length === 0) {
+      return 0;
+    }
+
+    let longest = 1;
+    let current = 1;
+
+    for (let i = 1; i < dates.length; i++) {
+
+      const previous =
+        new Date(dates[i - 1]);
+
+      const currentDate =
+        new Date(dates[i]);
+
+      const difference =
+        (currentDate - previous) /
+        (1000 * 60 * 60 * 24);
+
+      if (difference === 1) {
+
+        current++;
+
+        if (current > longest) {
+          longest = current;
+        }
+
+      } else {
+
+        current = 1;
+
+      }
+
+    }
+
+    return longest;
+
+  }
+
+
+  /* -------------------------
+     WEEK
+  ------------------------- */
+
+  function getWeekDates() {
+
+    const today = new Date();
+
+    const day = today.getDay();
+
+    const mondayOffset =
+      day === 0 ? -6 : 1 - day;
+
+    const monday = new Date(today);
+
+    monday.setDate(
+      today.getDate() + mondayOffset
+    );
+
+    const dates = [];
+
+    for (let i = 0; i < 7; i++) {
+
+      const date = new Date(monday);
+
+      date.setDate(
+        monday.getDate() + i
+      );
+
+      dates.push(date);
+
+    }
+
+    return dates;
+
+  }
+
+
+  /* -------------------------
+     WEEKLY STATS
+  ------------------------- */
+
+  function calculateWeeklyStats() {
+
+    const completed = getCompleted();
+
+    const training = getTraining();
+
+    const dates = getWeekDates();
+
+    let planned = 0;
+    let completedCount = 0;
+
+    dates.forEach(date => {
+
+      const key = dateKey(date);
+
+      const weekday =
+        date.getDay() === 0
+          ? 6
+          : date.getDay() - 1;
+
+      const trainingDays = [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday"
+      ];
+
+      const dayName =
+        trainingDays[weekday];
+
+      if (training[dayName]) {
+        planned++;
+      }
+
+      if (completed[key]) {
+        completedCount++;
+      }
+
+    });
+
+    return {
+      planned,
+      completed: completedCount
+    };
+
+  }
+
+
+  /* -------------------------
+     RECENT TRAINING
+  ------------------------- */
+
+  function renderRecentTraining() {
+
+    const completed = getCompleted();
+
+    const training = getTraining();
+
+    const container =
+      document.getElementById(
+        "recentTraining"
+      );
+
+    const dates = Object.keys(completed)
+      .filter(key => completed[key])
+      .sort()
+      .reverse()
+      .slice(0, 5);
+
+    if (dates.length === 0) {
+
+      container.innerHTML = `
+        <div class="empty">
+          No completed training yet.
+        </div>
+      `;
+
+      return;
+
+    }
+
+    container.innerHTML = "";
+
+    dates.forEach(key => {
+
+      const date = new Date(key);
+
+      const weekday =
+        date.getDay() === 0
+          ? 6
+          : date.getDay() - 1;
+
+      const trainingDays = [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday"
+      ];
+
+      const dayName =
+        trainingDays[weekday];
+
+      const session =
+        training[dayName];
+
+      const title =
+        session && session.title
+          ? session.title
+          : "Training completed";
+
+      const item =
+        document.createElement("div");
+
+      item.className = "recent-item";
+
+      item.innerHTML = `
+
+        <div class="recent-date">
+          ${date.toLocaleDateString("en-GB", {
+            weekday: "long",
+            day: "numeric",
+            month: "short"
+          })}
+        </div>
+
+        <div class="recent-title">
+          ${escapeHTML(title)}
+        </div>
+
+      `;
+
+      container.appendChild(item);
+
+    });
+
+  }
+
+
+  function escapeHTML(text) {
+
+    const div =
+      document.createElement("div");
+
+    div.textContent = text;
+
+    return div.innerHTML;
+
+  }
+
+
+  /* -------------------------
+     UPDATE DASHBOARD
+  ------------------------- */
+
+  function updateDashboard() {
+
+    const completed =
+      getCompleted();
+
+    const training =
+      getTraining();
+
+    const streak =
+      calculateCurrentStreak();
+
+    const longest =
+      calculateLongestStreak();
+
+    const weekly =
+      calculateWeeklyStats();
+
+
+    /*
+      TOTAL COMPLETED
+    */
+
+    const totalCompleted =
+      Object.keys(completed)
+        .filter(key => completed[key])
+        .length;
+
+
+    /*
+      COMPLETION RATE
+
+      Based on all planned sessions
+      that have had a chance to happen.
+    */
+
+    const today =
+      new Date();
+
+    const allPlannedDates =
+      Object.keys(completed).length +
+      Object.keys(training).length;
+
+    let completionRate = 0;
+
+    if (allPlannedDates > 0) {
+
+      completionRate =
+        Math.round(
+          (totalCompleted /
+          Math.max(totalCompleted, allPlannedDates))
+          * 100
+        );
+
+    }
+
+
+    /*
+      DISPLAY
+    */
+
+    document.getElementById(
+      "streakNumber"
+    ).textContent = streak;
+
+
+    if (streak === 0) {
+
+      document.getElementById(
+        "streakText"
+      ).textContent =
+        "Complete today's training to start your streak.";
+
+    } else if (streak === 1) {
+
+      document.getElementById(
+        "streakText"
+      ).textContent =
+        "Great start. Come back tomorrow to keep it going.";
+
+    } else {
+
+      document.getElementById(
+        "streakText"
+      ).textContent =
+        `Keep going. Your next target is ${streak + 1} days.`;
+
+    }
+
+
+    document.getElementById(
+      "totalSessions"
+    ).textContent = totalCompleted;
+
+
+    document.getElementById(
+      "longestStreak"
+    ).textContent = longest;
+
+
+    document.getElementById(
+      "completionRate"
+    ).textContent =
+      completionRate + "%";
+
+
+    document.getElementById(
+      "plannedSessions"
+    ).textContent =
+      weekly.planned;
+
+
+    const weeklyPercentage =
+      weekly.planned === 0
+        ? 0
+        : Math.round(
+            (weekly.completed /
+            weekly.planned) * 100
+          );
+
+
+    document.getElementById(
+      "weeklyPercentage"
+    ).textContent =
+      weeklyPercentage + "%";
+
+
+    document.getElementById(
+      "weeklyProgress"
+    ).style.width =
+      Math.min(weeklyPercentage, 100) + "%";
+
+
+    renderRecentTraining();
+
+  }
+
+
+  updateDashboard();
+
+</script>
+
+</body>
+</html>
