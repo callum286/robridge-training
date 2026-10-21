@@ -1,421 +1,252 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robridge Training</title>
 
-<title>Robridge Training</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
 
-<style>
-* {
-    box-sizing: border-box;
-}
+    body {
+      background: #f5f5f5;
+      color: #111;
+      padding: 30px 20px;
+    }
 
-body {
-    margin: 0;
-    background: #f4f4f4;
-    color: #111;
-    font-family: Arial, Helvetica, sans-serif;
-}
+    .container {
+      max-width: 700px;
+      margin: auto;
+    }
 
-header {
-    background: #111;
-    color: white;
-    padding: 22px;
-}
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
 
-header h1 {
-    margin: 0;
-    font-size: 24px;
-}
+    header h1 {
+      font-size: 32px;
+      margin-bottom: 6px;
+    }
 
-header p {
-    margin: 5px 0 0;
-    color: #aaa;
-}
+    header p {
+      color: #666;
+    }
 
-main {
-    max-width: 850px;
-    margin: auto;
-    padding: 30px 18px 60px;
-}
+    .day {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      cursor: pointer;
+    }
 
-.welcome {
-    margin-bottom: 25px;
-}
+    .day:hover {
+      transform: translateY(-1px);
+    }
 
-.welcome h2 {
-    font-size: 36px;
-    margin: 0 0 8px;
-}
+    .day.today {
+      border: 2px solid #111;
+    }
 
-.welcome p {
-    color: #666;
-}
+    .day.locked {
+      background: #e2e2e2;
+      color: #999;
+      cursor: default;
+      box-shadow: none;
+    }
 
-.week {
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid #ddd;
-}
+    .day.locked:hover {
+      transform: none;
+    }
 
-.day {
-    padding: 20px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    transition: background 0.15s;
-}
+    .day-info {
+      flex: 1;
+    }
 
-.day:hover {
-    background: #fafafa;
-}
+    .day-name {
+      font-weight: bold;
+      font-size: 18px;
+    }
 
-.day:last-child {
-    border-bottom: none;
-}
+    .today-label {
+      font-size: 11px;
+      font-weight: bold;
+      margin-left: 8px;
+      color: #666;
+    }
 
-.day-info {
-    flex: 1;
-}
+    .session-title {
+      margin-top: 5px;
+      color: #666;
+      font-size: 14px;
+    }
 
-.day-name {
-    font-weight: bold;
-    font-size: 14px;
-    text-transform: uppercase;
-}
+    .locked .session-title {
+      color: #999;
+    }
 
-.session {
-    margin-top: 6px;
-    font-size: 15px;
-    font-weight: bold;
-}
+    .tick-box {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: 2px solid #999;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
 
-.details {
-    margin-top: 4px;
-    color: #777;
-    font-size: 13px;
-}
+    .today .tick-box {
+      cursor: pointer;
+    }
 
-.empty {
-    color: #aaa;
-    font-weight: normal;
-}
+    .today .tick-box:hover {
+      border-color: #111;
+    }
 
-.modal-background {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.55);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
+    .completed .tick-box {
+      background: #111;
+      border-color: #111;
+      color: white;
+    }
 
-.modal-background.active {
-    display: flex;
-}
+    .locked .tick-box {
+      background: #cfcfcf;
+      border: none;
+      color: transparent;
+      cursor: default;
+    }
 
-.modal {
-    background: white;
-    width: 100%;
-    max-width: 500px;
-    border-radius: 18px;
-    padding: 25px;
-}
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
 
-.modal h2 {
-    margin-top: 0;
-}
+    .modal-content {
+      background: white;
+      width: 100%;
+      max-width: 500px;
+      padding: 25px;
+      border-radius: 14px;
+    }
 
-label {
-    display: block;
-    margin-top: 18px;
-    margin-bottom: 7px;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
+    .modal-content h2 {
+      margin-bottom: 20px;
+    }
 
-input,
-textarea,
-select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 15px;
-}
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+      margin-top: 15px;
+    }
 
-textarea {
-    min-height: 120px;
-    resize: vertical;
-}
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
 
-.buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
 
-button {
-    cursor: pointer;
-    border: none;
-    border-radius: 9px;
-    padding: 13px 18px;
-    font-weight: bold;
-}
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
 
-.cancel {
-    background: #eee;
-}
+    button {
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
 
-.save {
-    background: #111;
-    color: white;
-    flex: 1;
-}
-</style>
+    .save {
+      background: #111;
+      color: white;
+      flex: 1;
+    }
+
+    .cancel {
+      background: #ddd;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>
-    <h1>ROBRIDGE</h1>
-    <p>Training for watersports athletes</p>
-</header>
+  <div class="container">
 
-<main>
+    <header>
+      <h1>Robridge Training</h1>
+      <p>Plan your training. Build your streak.</p>
+    </header>
 
-    <div class="welcome">
-        <h2>This Week</h2>
-        <p>Plan your training. Build your streak.</p>
-    </div>
+    <div id="planner"></div>
 
-    <div class="week" id="week"></div>
+  </div>
 
-</main>
+  <!-- EDITOR -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
 
+      <h2 id="modalDay"></h2>
 
-<div class="modal-background" id="modal">
+      <label for="sessionTitle">Session title</label>
+      <input id="sessionTitle" type="text" placeholder="e.g. Upper Body Strength">
 
-    <div class="modal">
+      <label for="trainingType">Training type</label>
+      <select id="trainingType">
+        <option value="Strength">Strength</option>
+        <option value="Cardio">Cardio</option>
+        <option value="Mobility">Mobility</option>
+        <option value="On Water">On Water</option>
+        <option value="Foiling">Foiling</option>
+        <option value="Sailing">Sailing</option>
+        <option value="Recovery">Recovery</option>
+        <option value="Other">Other</option>
+      </select>
 
-        <h2 id="modalTitle">Edit Monday</h2>
+      <label for="sessionDetails">Details</label>
+      <textarea id="sessionDetails" placeholder="What are you doing in this session?"></textarea>
 
-        <label>Session title</label>
-
-        <input
-            id="title"
-            type="text"
-            placeholder="e.g. 29er Strength"
-        >
-
-        <label>Training type</label>
-
-        <select id="category">
-            <option>Strength</option>
-            <option>On-water</option>
-            <option>Cardio</option>
-            <option>Mobility</option>
-            <option>Technical</option>
-            <option>Recovery</option>
-            <option>Other</option>
-        </select>
-
-        <label>Details</label>
-
-        <textarea
-            id="details"
-            placeholder="What are you going to do?"
-        ></textarea>
-
-        <div class="buttons">
-
-            <button class="cancel" onclick="closeModal()">
-                Cancel
-            </button>
-
-            <button class="save" onclick="saveSession()">
-                Save session
-            </button>
-
-        </div>
+      <div class="buttons">
+        <button class="cancel" onclick="closeModal()">Cancel</button>
+        <button class="save" onclick="saveSession()">Save session</button>
+      </div>
 
     </div>
+  </div>
 
-</div>
+  <script>
 
-
-<script>
-
-const days = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday"
-];
-
-let training = JSON.parse(
-    localStorage.getItem("robridgeTraining")
-) || {};
-
-let selectedDay = null;
-
-
-function renderWeek() {
-
-    const week = document.getElementById("week");
-
-    week.innerHTML = "";
-
-    days.forEach((day, index) => {
-
-        const session = training[index];
-
-        const row = document.createElement("div");
-
-        row.className = "day";
-
-        row.onclick = () => openEditor(index);
-
-        row.innerHTML = `
-
-            <div class="day-info">
-
-                <div class="day-name">
-                    ${day}
-                </div>
-
-                ${
-                    session
-                    ?
-                    `
-                    <div class="session">
-                        ${escapeHTML(session.title)}
-                    </div>
-
-                    <div class="details">
-                        ${escapeHTML(session.details || session.category)}
-                    </div>
-                    `
-                    :
-                    `
-                    <div class="session empty">
-                        No session planned
-                    </div>
-                    `
-                }
-
-            </div>
-
-        `;
-
-        week.appendChild(row);
-
-    });
-
-}
-
-
-function openEditor(index) {
-
-    selectedDay = index;
-
-    const session = training[index];
-
-    document.getElementById("modalTitle").textContent =
-        "Edit " + days[index];
-
-    document.getElementById("title").value =
-        session ? session.title : "";
-
-    document.getElementById("category").value =
-        session ? session.category : "Strength";
-
-    document.getElementById("details").value =
-        session ? session.details : "";
-
-    document
-        .getElementById("modal")
-        .classList.add("active");
-
-}
-
-
-function closeModal() {
-
-    document
-        .getElementById("modal")
-        .classList.remove("active");
-
-    selectedDay = null;
-
-}
-
-
-function saveSession() {
-
-    const title =
-        document.getElementById("title").value.trim();
-
-    const category =
-        document.getElementById("category").value;
-
-    const details =
-        document.getElementById("details").value.trim();
-
-    if (!title) {
-
-        alert("Please give the session a title.");
-
-        return;
-
-    }
-
-    training[selectedDay] = {
-
-        title: title,
-
-        category: category,
-
-        details: details
-
-    };
-
-    localStorage.setItem(
-        "robridgeTraining",
-        JSON.stringify(training)
-    );
-
-    closeModal();
-
-    renderWeek();
-
-}
-
-
-function escapeHTML(text) {
-
-    const element =
-        document.createElement("div");
-
-    element.textContent = text;
-
-    return element.innerHTML;
-
-}
-
-
-renderWeek();
-
-</script>
-
-</body>
-</html>
+    const days = [
+      "Monday",
