@@ -53,6 +53,11 @@ h1 {
   font-size: 14px;
 }
 
+.nav a.active {
+  background: #111;
+  color: white;
+}
+
 .card {
   background: white;
   border-radius: 16px;
@@ -93,6 +98,10 @@ button {
   font-size: 15px;
   font-weight: bold;
   cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
 }
 
 .saved {
@@ -152,7 +161,7 @@ button {
     <a href="index.html">Planner</a>
     <a href="dashboard.html">Dashboard</a>
     <a href="notes.html">Notes</a>
-    <a href="profile.html">Profile</a>
+    <a href="profile.html" class="active">Profile</a>
   </div>
 
   <div class="card">
@@ -177,9 +186,7 @@ button {
 
     <button onclick="saveProfile()">Save Profile</button>
 
-    <div class="saved" id="savedMessage">
-      Profile saved.
-    </div>
+    <div class="saved" id="savedMessage"></div>
 
   </div>
 
@@ -226,48 +233,123 @@ let userId = null;
 
 
 /* =========================
+   SHOW MESSAGE
+========================= */
+
+function showMessage(text, hideAfter = false) {
+
+  const message =
+    document.getElementById("savedMessage");
+
+  message.textContent = text;
+  message.style.display = "block";
+
+  if (hideAfter) {
+
+    setTimeout(() => {
+      message.style.display = "none";
+    }, 2000);
+
+  }
+}
+
+
+/* =========================
    GET LOGGED-IN USER
 ========================= */
 
 async function getCurrentUser() {
 
-  const session = JSON.parse(
-    localStorage.getItem("robridgeSession")
-  );
+  const storedSession =
+    localStorage.getItem("robridgeSession");
 
-  if (!session || !session.access_token) {
+  if (!storedSession) {
     window.location.href = "login.html";
     return;
   }
 
-  accessToken = session.access_token;
+  let session;
 
-  const response = await fetch(
-    SUPABASE_URL + "/auth/v1/user",
-    {
-      headers: {
-        "apikey": SUPABASE_KEY,
-        "Authorization": "Bearer " + accessToken
-      }
-    }
-  );
+  try {
 
-  if (!response.ok) {
+    session = JSON.parse(storedSession);
+
+  } catch (error) {
+
+    console.error("Invalid session:", error);
+
     localStorage.removeItem("robridgeSession");
     window.location.href = "login.html";
     return;
   }
 
-  const user = await response.json();
 
-  if (!user.id) {
+  if (!session || !session.access_token) {
+
+    localStorage.removeItem("robridgeSession");
     window.location.href = "login.html";
     return;
   }
 
-  userId = user.id;
 
-  await loadProfile();
+  accessToken = session.access_token;
+
+
+  try {
+
+    const response = await fetch(
+      SUPABASE_URL + "/auth/v1/user",
+      {
+        method: "GET",
+
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": "Bearer " + accessToken
+        }
+      }
+    );
+
+
+    if (!response.ok) {
+
+      console.error(
+        "Authentication check failed:",
+        await response.text()
+      );
+
+      localStorage.removeItem("robridgeSession");
+      window.location.href = "login.html";
+      return;
+    }
+
+
+    const user = await response.json();
+
+
+    if (!user || !user.id) {
+
+      localStorage.removeItem("robridgeSession");
+      window.location.href = "login.html";
+      return;
+    }
+
+
+    userId = user.id;
+
+    await loadProfile();
+
+
+  } catch (error) {
+
+    console.error(
+      "Authentication error:",
+      error
+    );
+
+    showMessage(
+      "Could not connect to your account."
+    );
+  }
 }
 
 
@@ -285,6 +367,8 @@ async function loadProfile() {
       encodeURIComponent(userId) +
       "&select=*",
       {
+        method: "GET",
+
         headers: {
           "apikey": SUPABASE_KEY,
           "Authorization": "Bearer " + accessToken
@@ -292,21 +376,49 @@ async function loadProfile() {
       }
     );
 
+
     if (!response.ok) {
+
+      const errorText =
+        await response.text();
+
       console.error(
-        "Could not load profile:",
-        await response.text()
+        "Profile load error:",
+        errorText
       );
+
+      showMessage(
+        "Could not load your profile."
+      );
+
       return;
     }
 
-    const profiles = await response.json();
 
-    if (profiles.length === 0) {
+    const profiles =
+      await response.json();
+
+
+    console.log(
+      "Profile loaded from Supabase:",
+      profiles
+    );
+
+
+    if (!Array.isArray(profiles) || profiles.length === 0) {
+
+      console.log(
+        "No profile row found for user:",
+        userId
+      );
+
       return;
     }
 
-    const profile = profiles[0];
+
+    const profile =
+      profiles[0];
+
 
     document.getElementById("name").value =
       profile.name || "";
@@ -326,7 +438,9 @@ async function loadProfile() {
     document.getElementById("achievements").value =
       profile.achievements || "";
 
+
     renderProfile(profile);
+
 
   } catch (error) {
 
@@ -335,6 +449,9 @@ async function loadProfile() {
       error
     );
 
+    showMessage(
+      "Could not load your profile."
+    );
   }
 }
 
@@ -346,11 +463,17 @@ async function loadProfile() {
 async function saveProfile() {
 
   if (!userId || !accessToken) {
-    window.location.href = "login.html";
+
+    window.location.href =
+      "login.html";
+
     return;
   }
 
+
   const profile = {
+
+    id: userId,
 
     name:
       document.getElementById("name").value.trim(),
@@ -372,59 +495,105 @@ async function saveProfile() {
   };
 
 
-  const message =
-    document.getElementById("savedMessage");
-
-  message.textContent = "Saving...";
-  message.style.display = "block";
+  showMessage("Saving...");
 
 
   try {
 
+    /*
+      UPSERT:
+      - Creates the profile if it doesn't exist.
+      - Updates the profile if it already exists.
+      - Uses id as the primary key.
+    */
+
     const response = await fetch(
-      SUPABASE_URL +
-      "/rest/v1/profiles?id=eq." +
-      encodeURIComponent(userId),
+      SUPABASE_URL + "/rest/v1/profiles",
       {
-        method: "PATCH",
+        method: "POST",
 
         headers: {
-          "apikey": SUPABASE_KEY,
-          "Authorization": "Bearer " + accessToken,
-          "Content-Type": "application/json",
-          "Prefer": "return=minimal"
+
+          "apikey":
+            SUPABASE_KEY,
+
+          "Authorization":
+            "Bearer " + accessToken,
+
+          "Content-Type":
+            "application/json",
+
+          "Prefer":
+            "resolution=merge-duplicates,return=representation"
         },
 
-        body: JSON.stringify(profile)
+        body:
+          JSON.stringify(profile)
       }
+    );
+
+
+    const result =
+      await response.json();
+
+
+    console.log(
+      "Profile save response:",
+      result
     );
 
 
     if (!response.ok) {
 
-      const errorText =
-        await response.text();
-
       console.error(
-        "Profile save error:",
-        errorText
+        "Supabase save error:",
+        result
       );
 
-      message.textContent =
-        "Could not save profile.";
+      showMessage(
+        "Could not save profile."
+      );
 
       return;
     }
 
 
-    renderProfile(profile);
+    /*
+      Supabase should return the actual
+      saved profile here.
+    */
 
-    message.textContent =
-      "Profile saved.";
+    if (
+      !Array.isArray(result) ||
+      result.length === 0
+    ) {
 
-    setTimeout(() => {
-      message.style.display = "none";
-    }, 2000);
+      console.error(
+        "No saved profile was returned:",
+        result
+      );
+
+      showMessage(
+        "Profile was not saved."
+      );
+
+      return;
+    }
+
+
+    const savedProfile =
+      result[0];
+
+
+    renderProfile(
+      savedProfile
+    );
+
+
+    showMessage(
+      "Profile saved.",
+      true
+    );
 
 
   } catch (error) {
@@ -434,43 +603,64 @@ async function saveProfile() {
       error
     );
 
-    message.textContent =
-      "Could not save profile.";
+    showMessage(
+      "Could not save profile."
+    );
   }
 }
 
 
 /* =========================
-   SHOW PROFILE PREVIEW
+   RENDER PROFILE
 ========================= */
 
 function renderProfile(profile) {
 
-  document.getElementById("previewName").textContent =
+  document.getElementById(
+    "previewName"
+  ).textContent =
     profile.name || "Athlete";
 
-  document.getElementById("previewDisciplines").textContent =
+
+  document.getElementById(
+    "previewDisciplines"
+  ).textContent =
     profile.disciplines || "";
 
-  document.getElementById("previewClass").textContent =
+
+  document.getElementById(
+    "previewClass"
+  ).textContent =
     profile.class_name || "Not added";
 
-  document.getElementById("previewClub").textContent =
+
+  document.getElementById(
+    "previewClub"
+  ).textContent =
     profile.club || "Not added";
 
-  document.getElementById("previewGoals").textContent =
+
+  document.getElementById(
+    "previewGoals"
+  ).textContent =
     profile.goals || "Not added";
 
-  document.getElementById("previewAchievements").textContent =
+
+  document.getElementById(
+    "previewAchievements"
+  ).textContent =
     profile.achievements || "Not added";
 
-  document.getElementById("profilePreview").style.display =
+
+  document.getElementById(
+    "profilePreview"
+  ).style.display =
     "block";
 }
 
 
 /* =========================
-   START PAGE
+   START
 ========================= */
 
 getCurrentUser();
