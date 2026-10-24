@@ -228,8 +228,8 @@ h1 {
     <h2>Your Groups</h2>
 
     <div id="groupsList">
-      <div class="empty" id="emptyMessage">
-        You haven't joined a training group yet.
+      <div class="empty">
+        Loading groups...
       </div>
     </div>
 
@@ -255,37 +255,122 @@ h1 {
 
 <script>
 
-function getGroups() {
-  return JSON.parse(localStorage.getItem("robridgeGroups") || "[]");
+/* ================================
+   SUPABASE CONNECTION
+================================ */
+
+const SUPABASE_URL =
+  "https://rkaheotrwwvwzsgwclaq.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_qa1BtZNL0zzlcDbRLw1a7A_P8dyEGIF";
+
+
+/* ================================
+   SUPABASE REQUEST
+================================ */
+
+async function supabaseRequest(endpoint, options = {}) {
+
+  const response = await fetch(
+    SUPABASE_URL + "/rest/v1/" + endpoint,
+    {
+      ...options,
+
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": "Bearer " + SUPABASE_KEY,
+        "Content-Type": "application/json",
+        ...options.headers
+      }
+    }
+  );
+
+  if (!response.ok) {
+
+    const errorText = await response.text();
+
+    throw new Error(
+      errorText || "Supabase request failed."
+    );
+  }
+
+  const text = await response.text();
+
+  if (!text) {
+    return null;
+  }
+
+  return JSON.parse(text);
 }
 
-function saveGroups(groups) {
-  localStorage.setItem("robridgeGroups", JSON.stringify(groups));
+
+/* ================================
+   LOCAL GROUP MEMBERSHIP
+================================ */
+
+function getMyGroups() {
+
+  return JSON.parse(
+    localStorage.getItem("robridgeMyGroups") || "[]"
+  );
+
 }
+
+
+function saveMyGroups(groups) {
+
+  localStorage.setItem(
+    "robridgeMyGroups",
+    JSON.stringify(groups)
+  );
+
+}
+
+
+/* ================================
+   GROUP CODE
+================================ */
 
 function generateCode() {
-  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  const characters =
+    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
   let code = "";
 
   for (let i = 0; i < 6; i++) {
+
     code += characters.charAt(
-      Math.floor(Math.random() * characters.length)
+      Math.floor(
+        Math.random() * characters.length
+      )
     );
+
   }
 
   return code;
 }
 
+
+/* ================================
+   CREATE GROUP FORM
+================================ */
+
 function showCreateGroup() {
 
-  const form = document.getElementById("groupForm");
+  const form =
+    document.getElementById("groupForm");
 
   form.style.display = "block";
 
   form.innerHTML = `
+
     <h3>Create a training group</h3>
 
-    <label for="groupName">Group name</label>
+    <label for="groupName">
+      Group name
+    </label>
 
     <input
       type="text"
@@ -294,7 +379,9 @@ function showCreateGroup() {
       maxlength="40"
     >
 
-    <label for="groupDescription">Description</label>
+    <label for="groupDescription">
+      Description
+    </label>
 
     <textarea
       id="groupDescription"
@@ -307,6 +394,7 @@ function showCreateGroup() {
       <button
         class="primary-button"
         onclick="createGroup()"
+        id="createButton"
       >
         Create Group
       </button>
@@ -321,19 +409,31 @@ function showCreateGroup() {
     </div>
   `;
 
-  document.getElementById("groupName").focus();
+  document
+    .getElementById("groupName")
+    .focus();
+
 }
+
+
+/* ================================
+   JOIN GROUP FORM
+================================ */
 
 function showJoinGroup() {
 
-  const form = document.getElementById("groupForm");
+  const form =
+    document.getElementById("groupForm");
 
   form.style.display = "block";
 
   form.innerHTML = `
+
     <h3>Join a training group</h3>
 
-    <label for="joinCode">Group code</label>
+    <label for="joinCode">
+      Group code
+    </label>
 
     <input
       type="text"
@@ -348,6 +448,7 @@ function showJoinGroup() {
       <button
         class="primary-button"
         onclick="joinGroup()"
+        id="joinButton"
       >
         Join Group
       </button>
@@ -362,167 +463,429 @@ function showJoinGroup() {
     </div>
   `;
 
-  document.getElementById("joinCode").focus();
+  document
+    .getElementById("joinCode")
+    .focus();
+
 }
 
-function createGroup() {
 
-  const name = document.getElementById("groupName").value.trim();
-  const description = document.getElementById("groupDescription").value.trim();
+/* ================================
+   CREATE GROUP
+================================ */
+
+async function createGroup() {
+
+  const name =
+    document
+      .getElementById("groupName")
+      .value
+      .trim();
+
+  const description =
+    document
+      .getElementById("groupDescription")
+      .value
+      .trim();
 
   if (!name) {
+
     alert("Please enter a group name.");
+
     return;
   }
 
-  const groups = getGroups();
 
-  const newGroup = {
-    id: Date.now(),
-    name: name,
-    description: description || "Training group",
-    code: generateCode(),
-    members: 1
-  };
+  const button =
+    document.getElementById("createButton");
 
-  groups.push(newGroup);
+  button.disabled = true;
+  button.textContent = "Creating...";
 
-  saveGroups(groups);
 
-  closeForm();
+  try {
 
-  showSuccess(
-    "Group created. Your group code is " + newGroup.code + "."
-  );
+    const code = generateCode();
 
-  renderGroups();
-}
 
-function joinGroup() {
+    const data =
+      await supabaseRequest(
+        "groups",
+        {
+          method: "POST",
 
-  const codeInput = document.getElementById("joinCode");
+          headers: {
+            "Prefer": "return=representation"
+          },
 
-  const code = codeInput.value.trim().toUpperCase();
+          body: JSON.stringify({
 
-  if (!code) {
-    alert("Please enter a group code.");
-    return;
-  }
+            name: name,
 
-  const groups = getGroups();
+            description:
+              description || "Training group",
 
-  const group = groups.find(
-    group => group.code === code
-  );
+            code: code
 
-  if (group) {
+          })
+        }
+      );
+
+
+    const newGroup =
+      Array.isArray(data)
+        ? data[0]
+        : data;
+
+
+    if (!newGroup) {
+      throw new Error(
+        "The group was created but no group data was returned."
+      );
+    }
+
+
+    const myGroups =
+      getMyGroups();
+
+
+    myGroups.push(newGroup);
+
+
+    saveMyGroups(myGroups);
+
 
     closeForm();
 
+
     showSuccess(
-      "You've joined " + group.name + "."
+      "Group created. Your group code is " +
+      newGroup.code + "."
     );
+
+
+    renderGroups();
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "Couldn't create the group.\n\n" +
+      error.message
+    );
+
+    button.disabled = false;
+    button.textContent = "Create Group";
+
+  }
+
+}
+
+
+/* ================================
+   JOIN GROUP
+================================ */
+
+async function joinGroup() {
+
+  const codeInput =
+    document.getElementById("joinCode");
+
+
+  const code =
+    codeInput.value
+      .trim()
+      .toUpperCase();
+
+
+  if (!code) {
+
+    alert("Please enter a group code.");
+
+    return;
+  }
+
+
+  const button =
+    document.getElementById("joinButton");
+
+  button.disabled = true;
+  button.textContent = "Searching...";
+
+
+  try {
+
+    const data =
+      await supabaseRequest(
+        "groups?code=eq." +
+        encodeURIComponent(code) +
+        "&select=*",
+        {
+          method: "GET"
+        }
+      );
+
+
+    if (!data || data.length === 0) {
+
+      alert(
+        "No training group could be found with that code."
+      );
+
+      button.disabled = false;
+      button.textContent = "Join Group";
+
+      return;
+    }
+
+
+    const group = data[0];
+
+
+    const myGroups =
+      getMyGroups();
+
+
+    const alreadyJoined =
+      myGroups.some(
+        existingGroup =>
+          existingGroup.id === group.id
+      );
+
+
+    if (alreadyJoined) {
+
+      closeForm();
+
+      showSuccess(
+        "You're already in " +
+        group.name + "."
+      );
+
+      return;
+    }
+
+
+    myGroups.push(group);
+
+    saveMyGroups(myGroups);
+
+
+    closeForm();
+
+
+    showSuccess(
+      "You've joined " +
+      group.name +
+      "."
+    );
+
+
+    renderGroups();
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "Couldn't join the group.\n\n" +
+      error.message
+    );
+
+    button.disabled = false;
+    button.textContent = "Join Group";
+
+  }
+
+}
+
+
+/* ================================
+   CLOSE FORM
+================================ */
+
+function closeForm() {
+
+  const form =
+    document.getElementById("groupForm");
+
+  form.style.display = "none";
+
+  form.innerHTML = "";
+
+}
+
+
+/* ================================
+   SUCCESS MESSAGE
+================================ */
+
+function showSuccess(message) {
+
+  const success =
+    document.getElementById("successMessage");
+
+  success.textContent = message;
+
+  success.style.display = "block";
+
+
+  setTimeout(function() {
+
+    success.style.display = "none";
+
+  }, 5000);
+
+}
+
+
+/* ================================
+   LOAD MY GROUPS
+================================ */
+
+async function loadGroups() {
+
+  const savedGroups =
+    getMyGroups();
+
+
+  if (savedGroups.length === 0) {
 
     renderGroups();
 
     return;
   }
 
-  /*
-    For now, joining by code creates a local group entry.
-    Once we connect Supabase, this will instead search
-    the shared database for the real group.
-  */
 
-  const joinedGroup = {
-    id: Date.now(),
-    name: "Training Group",
-    description: "Joined training group",
-    code: code,
-    members: 1
-  };
+  try {
 
-  groups.push(joinedGroup);
+    const freshGroups = [];
 
-  saveGroups(groups);
 
-  closeForm();
+    for (const savedGroup of savedGroups) {
 
-  showSuccess(
-    "Group joined successfully."
-  );
+      const data =
+        await supabaseRequest(
+          "groups?id=eq." +
+          encodeURIComponent(savedGroup.id) +
+          "&select=*",
+          {
+            method: "GET"
+          }
+        );
 
-  renderGroups();
+
+      if (data && data.length > 0) {
+
+        freshGroups.push(data[0]);
+
+      }
+
+    }
+
+
+    saveMyGroups(freshGroups);
+
+    renderGroups();
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    renderGroups();
+
+  }
+
 }
 
-function closeForm() {
 
-  const form = document.getElementById("groupForm");
-
-  form.style.display = "none";
-  form.innerHTML = "";
-}
-
-function showSuccess(message) {
-
-  const success = document.getElementById("successMessage");
-
-  success.textContent = message;
-  success.style.display = "block";
-
-  setTimeout(function() {
-    success.style.display = "none";
-  }, 5000);
-}
+/* ================================
+   RENDER GROUPS
+================================ */
 
 function renderGroups() {
 
-  const groups = getGroups();
+  const groups =
+    getMyGroups();
 
-  const list = document.getElementById("groupsList");
+  const list =
+    document.getElementById("groupsList");
+
 
   if (groups.length === 0) {
 
     list.innerHTML = `
-      <div class="empty" id="emptyMessage">
+
+      <div class="empty">
+
         You haven't joined a training group yet.
+
       </div>
+
     `;
 
     return;
   }
 
-  list.innerHTML = groups.map(function(group) {
 
-    return `
-      <div class="group-card">
+  list.innerHTML =
+    groups.map(function(group) {
 
-        <h3>${escapeHtml(group.name)}</h3>
+      return `
 
-        <p>
-          ${escapeHtml(group.description)}
-        </p>
+        <div class="group-card">
 
-        <span class="group-code">
-          CODE: ${escapeHtml(group.code)}
-        </span>
+          <h3>
+            ${escapeHtml(group.name)}
+          </h3>
 
-      </div>
-    `;
+          <p>
+            ${escapeHtml(
+              group.description ||
+              "Training group"
+            )}
+          </p>
 
-  }).join("");
+          <span class="group-code">
+            CODE:
+            ${escapeHtml(group.code)}
+          </span>
+
+        </div>
+
+      `;
+
+    }).join("");
+
 }
+
+
+/* ================================
+   ESCAPE HTML
+================================ */
 
 function escapeHtml(text) {
 
-  const div = document.createElement("div");
+  const div =
+    document.createElement("div");
 
-  div.textContent = text;
+  div.textContent =
+    text == null ? "" : String(text);
 
   return div.innerHTML;
+
 }
 
-renderGroups();
+
+/* ================================
+   START
+================================ */
+
+loadGroups();
 
 </script>
 
