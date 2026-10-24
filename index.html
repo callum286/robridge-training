@@ -39,8 +39,6 @@
       color: #666;
     }
 
-    /* NAVIGATION */
-
     .nav {
       display: flex;
       justify-content: center;
@@ -63,8 +61,6 @@
       color: white;
     }
 
-    /* TRAINING DAYS */
-
     .day {
       background: white;
       border-radius: 12px;
@@ -85,11 +81,6 @@
     .day.today {
       border: 2px solid #111;
     }
-
-    /*
-      Previous and future days are grey,
-      but the whole day is still editable.
-    */
 
     .day.locked {
       background: #e2e2e2;
@@ -127,8 +118,6 @@
       color: #999;
     }
 
-    /* TICK BOX */
-
     .tick-box {
       width: 26px;
       height: 26px;
@@ -154,15 +143,11 @@
       border-color: #111;
     }
 
-    /* COMPLETED */
-
     .completed .tick-box {
       background: #111;
       border-color: #111;
       color: white;
     }
-
-    /* LOCKED TICK BOX */
 
     .locked .tick-box {
       background: #cfcfcf;
@@ -170,8 +155,6 @@
       color: transparent;
       cursor: default;
     }
-
-    /* MODAL */
 
     .modal {
       display: none;
@@ -255,23 +238,17 @@
       <p>Plan your training. Build your streak.</p>
     </header>
 
-    <!-- NAVIGATION -->
-
-   <div class="nav">
-  <a href="index.html" class="active">Planner</a>
-  <a href="dashboard.html">Dashboard</a>
-  <a href="notes.html">Notes</a>
-  <a href="login.html">Login</a>
-</div>
-
-    <!-- WEEKLY PLANNER -->
+    <div class="nav">
+      <a href="index.html" class="active">Planner</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="notes.html">Notes</a>
+      <a href="login.html">Login</a>
+    </div>
 
     <div id="planner"></div>
 
   </div>
 
-
-  <!-- EDIT TRAINING MODAL -->
 
   <div class="modal" id="modal">
 
@@ -340,6 +317,17 @@
 
   <script>
 
+    /*
+      SUPABASE
+    */
+
+    const SUPABASE_URL =
+      "https://rkaheotrwwvwzsgwclaq.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_qa1BtZNL0zzlcDbRLw1a7A_P8dyEGIF";
+
+
     const days = [
       "Monday",
       "Tuesday",
@@ -351,7 +339,9 @@
     ];
 
 
-    /* LOAD TRAINING PLAN */
+    /*
+      LOAD TRAINING PLAN
+    */
 
     let training =
       JSON.parse(
@@ -359,7 +349,11 @@
       ) || {};
 
 
-    /* LOAD COMPLETION HISTORY */
+    /*
+      LOAD COMPLETION HISTORY
+      This is still kept locally so the
+      existing statistics continue working.
+    */
 
     let completed =
       JSON.parse(
@@ -370,44 +364,55 @@
     let selectedDay = null;
 
 
-    /* GET TODAY'S WEEKDAY */
+    /*
+      GET TODAY'S WEEKDAY
+    */
 
     function getTodayIndex() {
 
-      const day = new Date().getDay();
+      const day =
+        new Date().getDay();
 
-      return day === 0 ? 6 : day - 1;
+      return day === 0
+        ? 6
+        : day - 1;
 
     }
 
 
-    /* GET TODAY'S DATE */
+    /*
+      GET TODAY'S DATE
+    */
 
     function getTodayKey() {
 
-      const date = new Date();
+      const date =
+        new Date();
 
       const year =
         date.getFullYear();
 
       const month =
         String(date.getMonth() + 1)
-        .padStart(2, "0");
+          .padStart(2, "0");
 
       const day =
         String(date.getDate())
-        .padStart(2, "0");
+          .padStart(2, "0");
 
       return `${year}-${month}-${day}`;
 
     }
 
 
-    /* GET DATE FOR A DAY IN THIS WEEK */
+    /*
+      GET DATE FOR A DAY IN THIS WEEK
+    */
 
     function getDateKeyForDay(dayIndex) {
 
-      const today = new Date();
+      const today =
+        new Date();
 
       const todayIndex =
         getTodayIndex();
@@ -427,18 +432,20 @@
 
       const month =
         String(date.getMonth() + 1)
-        .padStart(2, "0");
+          .padStart(2, "0");
 
       const day =
         String(date.getDate())
-        .padStart(2, "0");
+          .padStart(2, "0");
 
       return `${year}-${month}-${day}`;
 
     }
 
 
-    /* DRAW PLANNER */
+    /*
+      DRAW PLANNER
+    */
 
     function renderWeek() {
 
@@ -469,26 +476,28 @@
           completed[dateKey] === true;
 
 
-        div.className = "day";
+        div.className =
+          "day";
 
 
         if (isToday) {
+
           div.classList.add("today");
+
         }
 
 
-        /*
-          Only the visual appearance is locked.
-          The day itself remains editable.
-        */
-
         if (!isToday) {
+
           div.classList.add("locked");
+
         }
 
 
         if (isCompleted) {
+
           div.classList.add("completed");
+
         }
 
 
@@ -511,7 +520,6 @@
               }
 
             </div>
-
 
             <div class="session-title">
 
@@ -543,11 +551,6 @@
         `;
 
 
-        /*
-          Clicking ANYWHERE on the day
-          except the tick box opens the editor.
-        */
-
         div.addEventListener(
           "click",
           function(event) {
@@ -557,7 +560,9 @@
                 .classList
                 .contains("tick-box")
             ) {
+
               return;
+
             }
 
             openEditor(index);
@@ -573,9 +578,12 @@
     }
 
 
-    /* TICK TODAY */
+    /*
+      TICK / UNTICK TODAY
+      AND SAVE TO SUPABASE
+    */
 
-    function toggleDay(index, event) {
+    async function toggleDay(index, event) {
 
       event.stopPropagation();
 
@@ -584,13 +592,10 @@
         getTodayIndex();
 
 
-      /*
-        Previous and future boxes
-        simply do nothing.
-      */
-
       if (index !== todayIndex) {
+
         return;
+
       }
 
 
@@ -598,16 +603,220 @@
         getTodayKey();
 
 
-      if (completed[todayKey]) {
+      const dayName =
+        days[index];
 
-        delete completed[todayKey];
 
-      } else {
+      const session =
+        training[dayName] || {};
 
-        completed[todayKey] = true;
+
+      const sessionIsCompleted =
+        completed[todayKey] === true;
+
+
+      /*
+        GET LOGGED-IN USER
+      */
+
+      const sessionData =
+        JSON.parse(
+          localStorage.getItem("robridgeSession")
+        );
+
+
+      if (
+        !sessionData ||
+        !sessionData.access_token ||
+        !sessionData.user
+      ) {
+
+        alert(
+          "Please log in to record your training."
+        );
+
+        return;
 
       }
 
+
+      const userId =
+        sessionData.user.id;
+
+
+      const accessToken =
+        sessionData.access_token;
+
+
+      /*
+        UNCOMPLETE
+      */
+
+      if (sessionIsCompleted) {
+
+        try {
+
+          const response =
+            await fetch(
+              SUPABASE_URL +
+              "/rest/v1/training_history" +
+              "?user_id=eq." +
+              encodeURIComponent(userId) +
+              "&session_date=eq." +
+              encodeURIComponent(todayKey),
+              {
+                method: "DELETE",
+
+                headers: {
+                  "apikey":
+                    SUPABASE_KEY,
+
+                  "Authorization":
+                    "Bearer " +
+                    accessToken
+                }
+              }
+            );
+
+
+          if (!response.ok) {
+
+            const error =
+              await response.text();
+
+            console.error(
+              "Could not remove training history:",
+              error
+            );
+
+            alert(
+              "Could not update training history."
+            );
+
+            return;
+
+          }
+
+
+          delete completed[todayKey];
+
+        } catch (error) {
+
+          console.error(error);
+
+          alert(
+            "Could not update training history."
+          );
+
+          return;
+
+        }
+
+      }
+
+
+      /*
+        COMPLETE
+      */
+
+      else {
+
+        try {
+
+          const response =
+            await fetch(
+              SUPABASE_URL +
+              "/rest/v1/training_history",
+              {
+                method: "POST",
+
+                headers: {
+                  "apikey":
+                    SUPABASE_KEY,
+
+                  "Authorization":
+                    "Bearer " +
+                    accessToken,
+
+                  "Content-Type":
+                    "application/json",
+
+                  "Prefer":
+                    "return=representation"
+                },
+
+                body: JSON.stringify({
+
+                  user_id:
+                    userId,
+
+                  session_date:
+                    todayKey,
+
+                  day_name:
+                    dayName,
+
+                  title:
+                    session.title ||
+                    "Training Session",
+
+                  type:
+                    session.type ||
+                    "Training",
+
+                  details:
+                    session.details ||
+                    ""
+
+                })
+
+              }
+            );
+
+
+          const result =
+            await response.json();
+
+
+          if (!response.ok) {
+
+            console.error(
+              "Could not save training history:",
+              result
+            );
+
+            alert(
+              "Could not save training history."
+            );
+
+            return;
+
+          }
+
+
+          completed[todayKey] =
+            true;
+
+
+        } catch (error) {
+
+          console.error(error);
+
+          alert(
+            "Could not save training history."
+          );
+
+          return;
+
+        }
+
+      }
+
+
+      /*
+        KEEP LOCAL COMPLETION DATA
+        FOR THE EXISTING STATISTICS
+      */
 
       localStorage.setItem(
         "robridgeCompleted",
@@ -620,11 +829,14 @@
     }
 
 
-    /* OPEN EDITOR */
+    /*
+      OPEN EDITOR
+    */
 
     function openEditor(index) {
 
-      selectedDay = index;
+      selectedDay =
+        index;
 
 
       const day =
@@ -661,31 +873,40 @@
 
       document.getElementById(
         "modal"
-      ).style.display = "flex";
+      ).style.display =
+        "flex";
 
     }
 
 
-    /* CLOSE EDITOR */
+    /*
+      CLOSE EDITOR
+    */
 
     function closeModal() {
 
       document.getElementById(
         "modal"
-      ).style.display = "none";
+      ).style.display =
+        "none";
 
 
-      selectedDay = null;
+      selectedDay =
+        null;
 
     }
 
 
-    /* SAVE SESSION */
+    /*
+      SAVE SESSION
+    */
 
     function saveSession() {
 
       if (selectedDay === null) {
+
         return;
+
       }
 
 
@@ -727,21 +948,26 @@
     }
 
 
-    /* PREVENT HTML IN SESSION TITLES */
+    /*
+      PREVENT HTML IN SESSION TITLES
+    */
 
     function escapeHTML(text) {
 
       const div =
         document.createElement("div");
 
-      div.textContent = text;
+      div.textContent =
+        text;
 
       return div.innerHTML;
 
     }
 
 
-    /* CLOSE MODAL BY CLICKING OUTSIDE */
+    /*
+      CLOSE MODAL BY CLICKING OUTSIDE
+    */
 
     document.getElementById(
       "modal"
@@ -750,14 +976,18 @@
       function(event) {
 
         if (event.target === this) {
+
           closeModal();
+
         }
 
       }
     );
 
 
-    /* START */
+    /*
+      START
+    */
 
     renderWeek();
 
